@@ -3,48 +3,59 @@ import videojs from 'video.js'
 import 'videojs-flash'
 import 'videojs-contrib-hls'
 import 'videojs-contrib-quality-levels'
+import 'videojs-resolution-switcher'
 import '../node_modules/video.js/dist/video-js.css'
+import './videojs-resolution-switcher.css'
 
 export default class VideoPlayer extends React.Component {
   componentDidMount() {
     // instantiate Video.js
-    this.player = videojs(this.videoNode, this.props, function onPlayerReady() {
-      console.log('onPlayerReady', this)
+    this.player = videojs(
+      this.videoNode,
+      {
+        preload: true,
+        autoplay: true,
+        controls: true,
+        muted: true,
+        width: 600,
+        plugins: {
+          videoJsResolutionSwitcher: {
+            ui: true,
+            default: 'low', // Default resolution [{Number}, 'low', 'high'],
+            dynamicLabel: true, // Display dynamic labels or gear symbol
+          },
+        },
+      },
+      function() {
+        var player = this
+        window.player = player
+        player.updateSrc([
+          {
+            src: 'https://vjs.zencdn.net/v/oceans.mp4?sd',
+            type: 'video/mp4',
+            label: '360',
+            res: 360,
+          },
+          {
+            src: 'https://vjs.zencdn.net/v/oceans.mp4?hd',
+            type: 'video/mp4',
+            label: '720',
+            res: 720,
+          },
+        ])
+
+        
+       
+      },
+    )
+
+    this.player.ready(() => {
+      this.player.currentTime(5)
+      // this.player.pause()
+      console.log(this.player.isFullscreen())
+      console.log(this.player.currentResolution())
     })
 
-    // let qualityLevels = this.player.qualityLevels()
-
-    // // disable quality levels with less than 720 horizontal lines of resolution when added
-    // // to the list.
-    // qualityLevels.on('addqualitylevel', function(event) {
-    //   let qualityLevel = event.qualityLevel
-
-    //   if (qualityLevel.height >= 720) {
-    //     qualityLevel.enabled = true
-    //   } else {
-    //     qualityLevel.enabled = false
-    //   }
-    // })
-
-    // // example function that will toggle quality levels between SD and HD, defining and HD
-    // // quality as having 720 horizontal lines of resolution or more
-    // let toggleQuality = (function() {
-    //   let enable720 = true
-
-    //   return function() {
-    //     for (var i = 0; i < qualityLevels.length; i++) {
-    //       let qualityLevel = qualityLevels[i]
-    //       if (qualityLevel.width >= 720) {
-    //         qualityLevel.enabled = enable720
-    //       } else {
-    //         qualityLevel.enabled = !enable720
-    //       }
-    //     }
-    //     enable720 = !enable720
-    //   }
-    // })()
-
-    // let currentSelectedQualityLevelIndex = qualityLevels.selectedIndex // -1 if no level selected
   }
 
   // destroy player on unmount
@@ -63,7 +74,7 @@ export default class VideoPlayer extends React.Component {
         <div data-vjs-player>
           <video
             ref={node => (this.videoNode = node)}
-            className="video-js"
+            className="video-js vjs-default-skin"
             data-setup="{ techOrder: ['flash'] }"
           />
         </div>

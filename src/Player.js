@@ -12,50 +12,82 @@ export default class VideoPlayer extends React.Component {
     // instantiate Video.js
     this.player = videojs(
       this.videoNode,
-      {
-        preload: true,
-        autoplay: true,
-        controls: true,
-        muted: true,
-        width: 600,
-        plugins: {
-          videoJsResolutionSwitcher: {
-            ui: true,
-            default: 'low', // Default resolution [{Number}, 'low', 'high'],
-            dynamicLabel: true, // Display dynamic labels or gear symbol
-          },
-        },
-      },
+      this.props,
+      // {
+      //   preload: true,
+      //   autoplay: true,
+      //   controls: true,
+      //   muted: true,
+      //   width: 600,
+      //   plugins: {
+      //     videoJsResolutionSwitcher: {
+      //       ui: true,
+      //       default: 'low', // Default resolution [{Number}, 'low', 'high'],
+      //       dynamicLabel: true, // Display dynamic labels or gear symbol
+      //     },
+      //   },
+      // },
       function() {
         var player = this
         window.player = player
         player.updateSrc([
           {
-            src: 'https://vjs.zencdn.net/v/oceans.mp4?sd',
-            type: 'video/mp4',
+            src: 'http://content.jwplatform.com/manifests/vM7nH0Kl.m3u8',
+            type: 'application/x-mpegURL',
             label: '360',
             res: 360,
           },
           {
-            src: 'https://vjs.zencdn.net/v/oceans.mp4?hd',
-            type: 'video/mp4',
+            src: 'http://content.jwplatform.com/manifests/vM7nH0Kl.m3u8',
+            type: 'application/x-mpegURL',
             label: '720',
             res: 720,
           },
+          {
+            src: 'http://content.jwplatform.com/manifests/vM7nH0Kl.m3u8',
+            type: 'application/x-mpegURL',
+            label: '1080',
+            res: 1080,
+          },
         ])
-
-        
-       
       },
     )
 
-    this.player.ready(() => {
-      this.player.currentTime(5)
-      // this.player.pause()
-      console.log(this.player.isFullscreen())
-      console.log(this.player.currentResolution())
-    })
+    let qualityLevels = this.player.qualityLevels()
+    // // console.log(qualityLevels)
+    // // disable quality levels with less than 720 horizontal lines of resolution when added
+    // // to the list.
+    // qualityLevels.on('addqualitylevel', function(event) {
+    //   let qualityLevel = event.qualityLevel
+    //   console.log(qualityLevel)
+    //   if (qualityLevel.height >= 720) {
+    //     qualityLevel.enabled = true
+    //   } else {
+    //     qualityLevel.enabled = false
+    //   }
+    // })
 
+    // example function that will toggle quality levels between SD and HD, defining and HD
+    // quality as having 720 horizontal lines of resolution or more
+    let toggleQuality = (function() {
+      let enable720 = true
+
+      return function() {
+        for (var i = 0; i < qualityLevels.length; i++) {
+          let qualityLevel = qualityLevels[i]
+          if (qualityLevel.width >= 720) {
+            qualityLevel.enabled = enable720
+          } else {
+            qualityLevel.enabled = enable720
+          }
+        }
+        enable720 = !enable720
+      }
+    })()
+
+    toggleQuality()
+    let currentSelectedQualityLevelIndex = qualityLevels.selectedIndex
+    console.log(currentSelectedQualityLevelIndex) // -1 if no level selected
   }
 
   // destroy player on unmount
